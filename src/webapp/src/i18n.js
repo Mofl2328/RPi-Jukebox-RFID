@@ -26,6 +26,11 @@ const i18nReady = i18n
     react: {
       useSuspense: false,
     },
+    // The web server sends no cache headers. A per-build version in the URL
+    // makes browsers load the new translations after a Web App update.
+    backend: {
+      queryStringParams: { v: import.meta.env.VITE_BUILD_ID },
+    },
   });
 
 export { i18nReady };

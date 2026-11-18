@@ -2,9 +2,13 @@ import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 
 const apiTarget = process.env.API_PROXY_TARGET || 'http://localhost:5556';
+const buildId = process.env.VITE_BUILD_ID || Date.now().toString();
 
 export default defineConfig({
   plugins: [react()],
+  define: {
+    'import.meta.env.VITE_BUILD_ID': JSON.stringify(buildId),
+  },
   build: {
     outDir: 'build',
     sourcemap: false,
