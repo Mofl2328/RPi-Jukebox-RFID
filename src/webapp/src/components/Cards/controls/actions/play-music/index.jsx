@@ -51,19 +51,31 @@ const SelectPlayMusic = ({
         </Grid>
       }
       <Grid size={12}>
-        {command === 'play_album' && <SelectedAlbum values={values} />}
-        {command === 'play_folder' && <SelectedFolder values={values} />}
-        {command === 'play_single' && <SelectedSingle values={values} />}
-      </Grid>
-
-      <Grid size={12} sx={{ display: 'flex', justifyContent: 'center' }}>
-        <Button
-          variant="outlined"
-          onClick={selectMusic}
-          endIcon={<KeyboardArrowRightIcon />}
-        >
-          {t('cards.controls.actions.play-music.button-label')}
-        </Button>
+        <Grid container sx={{ alignItems: 'center', flexWrap: 'nowrap' }}>
+          {command &&
+            <Grid size="grow" sx={{ minWidth: 0 }}>
+              {command === 'play_album' && <SelectedAlbum values={values} />}
+              {command === 'play_folder' && <SelectedFolder values={values} />}
+              {command === 'play_single' && <SelectedSingle values={values} />}
+            </Grid>
+          }
+          <Grid
+            size={command ? 'auto' : 12}
+            sx={{
+              display: 'flex',
+              justifyContent: command ? 'flex-end' : 'center',
+              paddingLeft: '10px',
+            }}
+          >
+            <Button
+              variant="outlined"
+              onClick={selectMusic}
+              endIcon={<KeyboardArrowRightIcon />}
+            >
+              {t('cards.controls.actions.play-music.button-label')}
+            </Button>
+          </Grid>
+        </Grid>
       </Grid>
     </Grid>
   );
