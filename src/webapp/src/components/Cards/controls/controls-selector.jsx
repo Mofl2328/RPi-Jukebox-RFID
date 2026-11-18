@@ -17,6 +17,8 @@ const ControlsSelector = ({
   actionData,
   setActionData,
   cardId,
+  playbackId,
+  setPlaybackId,
 }) => {
   const { t } = useTranslation();
 
@@ -61,10 +63,12 @@ const ControlsSelector = ({
           />
         }
 
-        {actionData.action === 'play_music' &&
+        {(actionData.action === 'play_music' || actionData.action === 'play_audiobook') &&
           <SelectPlayMusic
             actionData={actionData}
             cardId={cardId}
+            playbackId={playbackId}
+            setPlaybackId={setPlaybackId}
           />
         }
 

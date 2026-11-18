@@ -140,10 +140,22 @@ class MpdLock:
 class PlayerMPD:
     """Interface to MPD Music Player Daemon"""
 
+    _PLAYBACK_SAVE_INTERVAL = 30.0  # seconds between saves while playing
+    _PLAYBACK_END_MARGIN = 3.0      # seconds before the end of the last track that count as "finished"
+    active_playback_id = None
+    active_playback_folder = None
+    _playback_last_save = 0.0
+    _playback_last_state = None
+    _playback_active_since = 0.0
+
     def __init__(self):
         self.nvm = nv_manager()
         self.mpd_host = cfg.getn('playermpd', 'host')
         self.music_player_status = self.nvm.load(cfg.getn('playermpd', 'status_file'))
+        # Persistent playback positions per card 'playback_id'
+        self.playback_positions = self.nvm.load(
+            cfg.getn('playermpd', 'playback_positions_file',
+                     default='../../shared/settings/playback_positions.json'))
 
         self.second_swipe_action_dict = {'toggle': self.toggle,
                                          'play': self.play,
@@ -282,6 +294,7 @@ class PlayerMPD:
         this method polls the status from mpd and stores the important inforamtion in the music_player_status,
         it will repeat itself in the intervall specified by self.mpd_status_poll_interval
         """
+        poll_started = time.monotonic()
         self.mpd_status.update(self.mpd_retry_with_mutex(self.mpd_client.status))
         self.mpd_status.update(self.mpd_retry_with_mutex(self.mpd_client.currentsong))
 
@@ -300,6 +313,8 @@ class PlayerMPD:
             self.current_folder_status["LOOP"] = "OFF"
             self.current_folder_status["SINGLE"] = "OFF"
 
+        self._update_playback_position(poll_started)
+
         # Delete the volume key to avoid confusion
         # Volume is published via the 'volume' component!
         try:
@@ -309,6 +324,80 @@ class PlayerMPD:
         if self._active:
             self.mpd_status['provider'] = 'mpd'
             publishing.get_publisher().send('playerstatus', self.mpd_status)
+
+    @staticmethod
+    def _file_in_folder(file: str, folder: str) -> bool:
+        folder = folder.strip('/')
+        return not folder or file.startswith(folder + '/')
+
+    def _clear_active_playback_id(self):
+        if self.active_playback_id is not None:
+            self._save_playback_positions()
+        self.active_playback_id = None
+        self.active_playback_folder = None
+
+    def _save_playback_positions(self):
+        try:
+            self.playback_positions.save_to_json()
+        except Exception as e:
+            logger.error(f"Saving playback positions failed: {e.__class__.__qualname__}: {e}")
+        self._playback_last_save = time.monotonic()
+
+    def _update_playback_position(self, poll_started: float):
+        """Called from the status poll: record where the active playback_id is, and save it now and then"""
+        pid = self.active_playback_id
+        if pid is None:
+            return
+        if poll_started < self._playback_active_since:
+            # This status was (partly) read before the card started playing: it describes the old playlist
+            return
+        state = self.mpd_status.get('state')
+        file = self.mpd_status.get('file')
+        if state in ('play', 'pause') and file and self._file_in_folder(file, self.active_playback_folder):
+            self.playback_positions[pid] = {
+                'folder': self.active_playback_folder,
+                'song': self.mpd_status.get('song', '0'),
+                'file': file,
+                'elapsed': self.mpd_status.get('elapsed', '0.0'),
+                'duration': self.mpd_status.get('duration'),
+                'playlistlength': self.mpd_status.get('playlistlength'),
+                'updated': time.strftime('%Y-%m-%d %H:%M:%S'),
+            }
+        # Save on every play/pause/stop change and every _PLAYBACK_SAVE_INTERVAL while playing.
+        # Don't rely on the save at exit: the daemon is often killed on shutdown before it gets there.
+        if state != self._playback_last_state or \
+                (state == 'play' and time.monotonic() - self._playback_last_save >= self._PLAYBACK_SAVE_INTERVAL):
+            self._playback_last_state = state
+            self._save_playback_positions()
+
+    def _resume_playback_id(self, playback_id: str, folder: str, saved: dict):
+        """Seek to the saved position of playback_id. Expects the folder to be loaded and playing."""
+        if not saved or saved.get('folder') != folder:
+            logger.info(f"playback_id '{playback_id}': no saved position for '{folder}', starting from the beginning")
+            return
+        playlist = self.mpd_retry_with_mutex(self.mpd_client.playlistinfo) or []
+        files = [entry.get('file') for entry in playlist]
+        try:
+            song = int(saved.get('song', 0))
+        except (TypeError, ValueError):
+            song = -1
+        if not (0 <= song < len(files) and files[song] == saved.get('file')):
+            # Folder content changed: look the file up by name
+            song = files.index(saved.get('file')) if saved.get('file') in files else -1
+        if song < 0:
+            logger.info(f"playback_id '{playback_id}': saved file '{saved.get('file')}' is no longer in '{folder}', "
+                        f"starting from the beginning")
+            return
+        try:
+            elapsed = float(saved.get('elapsed') or 0.0)
+            duration = float(saved.get('duration') or 0.0)
+        except (TypeError, ValueError):
+            elapsed, duration = 0.0, 0.0
+        if song == len(files) - 1 and duration > 0 and elapsed >= duration - self._PLAYBACK_END_MARGIN:
+            logger.info(f"playback_id '{playback_id}': was finished, starting '{folder}' from the beginning")
+            return
+        logger.info(f"playback_id '{playback_id}': resuming '{folder}' at track {song + 1}, {elapsed:.1f}s")
+        self.mpd_retry_with_mutex(self.mpd_client.seek, song, elapsed)
 
     # MPD can play absolute paths but can find songs in its database only by relative path
     # This function aims to prepare the song_url accordingly
@@ -532,6 +621,7 @@ class PlayerMPD:
     @plugs.tag
     def play_single(self, song_url):
         with self.mpd_lock:
+            self._clear_active_playback_id()
             self.mpd_client.clear()
             self.mpd_client.addid(song_url)
             self.mpd_client.play()
@@ -544,19 +634,32 @@ class PlayerMPD:
             self.mpd_client.seek(songpos, elapsed)
             self.mpd_client.play()
 
-    def is_second_swipe(self, folder: str) -> bool:
+    def is_second_swipe(self, folder: str, playback_id: str = None) -> bool:
         """Return whether a card request should run the configured second-swipe action."""
         logger.debug(f"last_played_folder = {self.music_player_status['player_status']['last_played_folder']}")
         with self.mpd_lock:
             return (
                 self.second_swipe_action is not None
                 and self.music_player_status['player_status']['last_played_folder'] == folder
+                # Two cards with different IDs on the same folder keep separate positions
+                and (playback_id is None or self.active_playback_id == playback_id)
             )
 
     def play_second_swipe(self):
         """Run the configured second-swipe action."""
         logger.debug('Calling second swipe action')
         self.second_swipe_action()
+
+    def play_folder_with_playback_id(self, folder: str, recursive: bool, playback_id: str):
+        """Play a folder and continue at the position saved for *playback_id*"""
+        with self.mpd_lock:
+            # Read the position first: the status poll records the new start position
+            saved = dict(self.playback_positions.get(playback_id) or {})
+            self.play_folder(folder, recursive)  # clears the active playback_id
+            self._resume_playback_id(playback_id, folder, saved)
+            self._playback_active_since = time.monotonic()
+            self.active_playback_folder = folder
+            self.active_playback_id = playback_id
 
     @plugs.tag
     def get_single_coverart(self, song_url):
@@ -605,6 +708,7 @@ class PlayerMPD:
         """
         # TODO: This changes the current state -> Need to save last state
         with self.mpd_lock:
+            self._clear_active_playback_id()
             logger.info(f"Play folder: '{folder}'")
             self.mpd_client.clear()
 
@@ -639,6 +743,7 @@ class PlayerMPD:
         :param album: Album name provided by MPD database
         """
         with self.mpd_lock:
+            self._clear_active_playback_id()
             logger.info(f"Play album: '{album}' by '{albumartist}")
             self.mpd_client.clear()
             self.mpd_retry_with_mutex(self.mpd_client.findadd, 'albumartist', albumartist, 'album', album)

@@ -155,6 +155,7 @@ const LibraryLists = () => {
   const [searchParams] = useSearchParams();
   const [isSelecting] = useState(searchParams.get('isSelecting'));
   const [cardId] = useState(searchParams.get('cardId'));
+  const [cardAction] = useState(searchParams.get('cardAction'));
   const [musicFilter, setMusicFilter] = useState('');
   const [sources, setSources] = useState([LOCAL_SOURCE]);
   const [isLoadingSources, setIsLoadingSources] = useState(true);
@@ -178,7 +179,9 @@ const LibraryLists = () => {
   };
 
   const registerMusicToCard = (command, args) => {
-    const actionData = buildActionData('play_music', command, args);
+    // Audiobooks are folders: albums and single songs stay "Play music"
+    const action = (cardAction === 'play_audiobook' && command === 'play_card') ? 'play_audiobook' : 'play_music';
+    const actionData = buildActionData(action, command, args);
     const state = {
       registerCard: {
         actionData,

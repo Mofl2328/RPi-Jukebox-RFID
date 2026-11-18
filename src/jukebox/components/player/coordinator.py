@@ -216,10 +216,12 @@ class PlayerCoordinator:
         return self._call_active('resume')
 
     @plugs.tag
-    def play_card(self, folder: str, recursive: bool = False):
+    def play_card(self, folder: str, recursive: bool = False, playback_id: Optional[str] = None):
+        """Play a folder from a card. With a *playback_id*, continue at its saved position."""
+        playback_args = () if playback_id is None else (str(playback_id),)
         with self._lock:
             backend = self._content_backend()
-            is_second_swipe = self._call_backend(backend, 'is_second_swipe', folder)
+            is_second_swipe = self._call_backend(backend, 'is_second_swipe', folder, *playback_args)
             if is_second_swipe:
                 if self._play_card_callbacks is not None:
                     self._play_card_callbacks.run_callbacks(folder, PlayCardState.secondSwipe)
@@ -227,6 +229,8 @@ class PlayerCoordinator:
 
             if self._play_card_callbacks is not None:
                 self._play_card_callbacks.run_callbacks(folder, PlayCardState.firstSwipe)
+            if playback_args:
+                return self._call_backend(backend, 'play_folder_with_playback_id', folder, recursive, *playback_args)
             return self._call_backend(backend, 'play_folder', folder, recursive)
 
     @plugs.tag

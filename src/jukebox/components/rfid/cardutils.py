@@ -21,6 +21,12 @@ def decode_card_command(cfg_rpc_cmd: Mapping, logger: logging.Logger = log):
         action['ignore_same_id_delay'] = cfg_rpc_cmd['ignore_same_id_delay']
     if 'ignore_card_removal_action' in cfg_rpc_cmd:
         action['ignore_card_removal_action'] = cfg_rpc_cmd['ignore_card_removal_action']
+    # 'playback_id' keeps a persistent playback position for this card
+    if cfg_rpc_cmd.get('playback_id') is not None and action is not None:
+        if action.get('method') == 'play_card':
+            action['kwargs'] = {**(action.get('kwargs') or {}), 'playback_id': str(cfg_rpc_cmd['playback_id'])}
+        else:
+            logger.warning(f"'playback_id' only works with alias 'play_card'. Ignored for method '{action.get('method')}'")
     return action
 
 

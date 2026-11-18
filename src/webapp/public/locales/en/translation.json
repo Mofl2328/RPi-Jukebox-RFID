@@ -42,6 +42,7 @@
         "placeholder": "Select an action",
         "actions": {
           "play_music": "Play music",
+          "play_audiobook": "Play audiobook",
           "audio": "Audio & Volume",
           "host": "System",
           "timers": "Timers",
@@ -57,8 +58,14 @@
         "play-music": {
           "commands": {
             "play_album": "Selected album",
+            "play_card": "Selected folder",
             "play_folder": "Selected folder",
             "play_single": "Selected song"
+          },
+          "playback-id": {
+            "label": "Playback ID",
+            "helper": "The card continues where it stopped, also after other cards or a restart. Cards with the same ID share the position.",
+            "generate": "New ID"
           },
           "button-label": "Select music",
           "no-music-selected": "No music selected",

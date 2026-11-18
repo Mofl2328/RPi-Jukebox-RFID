@@ -13,6 +13,7 @@
   * [Bluetooth audio buttons](./bluetooth-audio-buttons.md)
 * [GPIO Recipes](./gpio.md)
 * [Card Database](./card-database.md)
+  * [Persistent playback position per card](./playback-id.md)
   * [RFID Cards synchronisation](./components/synchronisation/rfidcards.md)
 * [Auto Hotspot](./autohotspot.md)
 * File Management

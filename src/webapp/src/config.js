@@ -31,8 +31,16 @@ const JUKEBOX_ACTIONS_MAP = {
   play_music: {
     commands: {
       play_album: {},
-      play_folder: {},
+      play_card: {},
+      play_folder: {}, // Only for showing older cards. Edited cards are saved as play_card
       play_single: {},
+    }
+  },
+
+  // Folder card with a persistent playback position (playback_id)
+  play_audiobook: {
+    commands: {
+      play_card: {},
     }
   },
 

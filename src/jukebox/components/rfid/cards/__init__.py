@@ -64,6 +64,8 @@ def list_cards():
             alias = card_action.get('alias', None)
             if alias is not None:
                 card_list[card_id]['from_alias'] = alias
+            if card_action.get('playback_id') is not None:
+                card_list[card_id]['playback_id'] = str(card_action['playback_id'])
     return card_list
 
 
@@ -92,8 +94,12 @@ def register_card(card_id: str, cmd_alias: str,
                   args: Optional[List] = None, kwargs: Optional[Dict] = None,
                   ignore_card_removal_action: Optional[bool] = None, ignore_same_id_delay: Optional[bool] = None,
                   overwrite: bool = False,
-                  auto_save: bool = True):
+                  auto_save: bool = True,
+                  playback_id: Optional[str] = None):
     """Register a new card based on quick-selection
+
+    *playback_id*: only for alias 'play_card'. Stored as 'playback_id' in the card entry, so the card keeps a
+    persistent playback position. Empty or None stores no playback_id.
 
     If you are going to call this through the RPC it will get a little verbose
 
@@ -123,6 +129,11 @@ def register_card(card_id: str, cmd_alias: str,
             cfg_cards[card_id]['ignore_same_id_delay'] = ignore_same_id_delay
         if ignore_card_removal_action is not None:
             cfg_cards[card_id]['ignore_card_removal_action'] = ignore_card_removal_action
+        if playback_id is not None and str(playback_id).strip():
+            if cmd_alias == 'play_card':
+                cfg_cards[card_id]['playback_id'] = str(playback_id).strip()
+            else:
+                log.warning(f"playback_id only works with alias 'play_card'. Not stored for '{cmd_alias}'")
         if auto_save:
             cfg_cards.save()
     publishing.get_publisher().send(f'{plugs.loaded_as(__name__)}.database.has_changed', time.ctime())

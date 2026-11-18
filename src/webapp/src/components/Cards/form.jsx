@@ -29,6 +29,8 @@ const CardsForm = ({
   cardId,
   actionData,
   setActionData,
+  playbackId,
+  setPlaybackId,
 }) => {
   const { t } = useTranslation();
 
@@ -58,11 +60,14 @@ const CardsForm = ({
                       actionData={actionData}
                       setActionData={setActionData}
                       cardId={cardId}
+                      playbackId={playbackId}
+                      setPlaybackId={setPlaybackId}
                     />
                   </Grid>
                   <ActionsControls
                     actionData={actionData}
                     cardId={cardId}
+                    playbackId={playbackId}
                   />
                 </>
               }

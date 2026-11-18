@@ -17,6 +17,7 @@ import {
 const ActionsControls = ({
   actionData,
   cardId,
+  playbackId,
 }) => {
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -25,13 +26,16 @@ const ActionsControls = ({
 
   const handleRegisterCard = async () => {
     const args = getArgsValues(actionData);
-    const { command: cmd_alias } = getActionAndCommand(actionData);
+    const { action, command: cmd_alias } = getActionAndCommand(actionData);
 
     const kwargs = {
       card_id: cardId.toString(),
       cmd_alias,
       overwrite: true,
       ...(args.length && { args }),
+      // Only "Play audiobook" cards keep a playback position
+      ...(action === 'play_audiobook' && cmd_alias === 'play_card' && playbackId?.trim()
+        && { playback_id: playbackId.trim() }),
     };
 
     const { error } = await request('registerCard', kwargs);

@@ -13,6 +13,7 @@ const CardsEdit = () => {
   const { t } = useTranslation();
   const { cardId } = useParams();
   const [actionData, setActionData] = useState({});
+  const [playbackId, setPlaybackId] = useState('');
 
   useEffect(() => {
     const loadCardList = async () => {
@@ -22,13 +23,20 @@ const CardsEdit = () => {
         if (result && result[cardId]) {
           const {
             action: { args },
-            from_alias: command
+            from_alias: alias,
+            playback_id,
           } = result[cardId];
 
-          const action = findActionByCommand(command);
+          // Folder cards are always saved as play_card
+          const command = alias === 'play_folder' ? 'play_card' : alias;
+          // A play_card card with a playback_id is shown as "Play audiobook"
+          const action = (command === 'play_card' && playback_id)
+            ? 'play_audiobook'
+            : findActionByCommand(command);
           const actionData = buildActionData(action, command, args);
 
           setActionData(actionData);
+          setPlaybackId(playback_id || '');
         }
 
         if (error) {
@@ -46,6 +54,8 @@ const CardsEdit = () => {
       cardId={cardId}
       actionData={actionData}
       setActionData={setActionData}
+      playbackId={playbackId}
+      setPlaybackId={setPlaybackId}
     />
   );
 };

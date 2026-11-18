@@ -42,6 +42,7 @@
         "placeholder": "Wähle eine Aktion aus",
         "actions": {
           "play_music": "Musik abspielen",
+          "play_audiobook": "Hörbuch abspielen",
           "audio": "Audio & Lautstärke",
           "host": "System",
           "timers": "Timer",
@@ -57,8 +58,14 @@
         "play-music": {
           "commands": {
             "play_album": "Ausgewähltes Album",
+            "play_card": "Ausgewählter Ordner",
             "play_folder": "Ausgewählter Ordner",
             "play_single": "Ausgewählter Song"
+          },
+          "playback-id": {
+            "label": "Wiedergabe-ID",
+            "helper": "Die Karte macht dort weiter, wo sie aufgehört hat, auch nach anderen Karten oder einem Neustart. Karten mit gleicher ID teilen sich die Position.",
+            "generate": "Neue ID"
           },
           "button-label": "Musik auswählen",
           "no-music-selected": "Es ist keine Musik ausgewählt.",
