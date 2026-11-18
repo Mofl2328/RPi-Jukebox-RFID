@@ -1,4 +1,4 @@
-import { useContext, useEffect, useState } from 'react';
+import { useContext, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import Grid from '@mui/material/Grid';
@@ -24,24 +24,33 @@ const Volume = () => {
   const [volumeMute, setVolumeMute] = useState(false);
   const [maxVolume, setMaxVolume] = useState(100);
   const [volumeStep] = useState(1);
+  const changeEndTimeout = useRef(null);
+
+  // The bar spans 0 to the maximum, so a low maximum still uses its full width.
+  // A maximum of 0 is allowed, but a slider needs a range greater than 0.
+  const sliderMax = Math.max(maxVolume, 1);
 
   const toggleVolumeMute = () => {
     setVolumeMute(!volumeMute);
     request('toggleMuteVolume', { mute: !volumeMute });
   };
 
-  const updateVolume = () => {
-    request('setVolume', { volume: _volume });
+  const updateVolume = (event, newVolume) => {
+    const committedVolume = Math.min(newVolume, maxVolume);
+    setVolume(committedVolume);
+    request('setVolume', { volume: committedVolume });
     // Delay the next command to avoid jumping slide control
-    setTimeout(() => setIsChangingVolume(false), 500);
+    clearTimeout(changeEndTimeout.current);
+    changeEndTimeout.current = setTimeout(() => setIsChangingVolume(false), 500);
   }
 
   const handleVolumeChange = (event, newVolume) => {
+    clearTimeout(changeEndTimeout.current);
     setIsChangingVolume(true);
-    if (newVolume <= maxVolume) {
-      setVolume(newVolume);
-    }
+    setVolume(Math.min(newVolume, maxVolume));
   }
+
+  useEffect(() => () => clearTimeout(changeEndTimeout.current), []);
 
   useEffect(() => {
     // Only trigger API when not dragging volume bar
@@ -95,7 +104,8 @@ const Volume = () => {
           onChange={handleVolumeChange}
           onChangeCommitted={updateVolume}
           disabled={!!volumeMute}
-          marks={[ { value: maxVolume } ]}
+          marks={sliderMax <= 20}
+          max={sliderMax}
           step={volumeStep}
           value={_volume}
           valueLabelDisplay="auto"
