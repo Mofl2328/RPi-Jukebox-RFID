@@ -230,6 +230,10 @@
     "settings": "Einstellungen"
   },
   "player": {
+    "playlist": {
+      "title": "Wiedergabeliste ({{count}} Titel)",
+      "play-track": "{{title}} abspielen"
+    },
     "controls": {
       "shuffle": {
         "enable": "Zufallswiedergabe aktivieren",

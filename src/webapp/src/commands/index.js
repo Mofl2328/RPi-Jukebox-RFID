@@ -63,7 +63,18 @@ const commands = {
     method: 'playerstatus'
   },
 
+  playlistinfo: {
+    _package: 'player',
+    plugin: 'ctrl',
+    method: 'playlistinfo',
+  },
+
   // Player Actions
+  play_track: {
+    _package: 'player',
+    plugin: 'ctrl',
+    method: 'play_track',
+  },
   play: {
     _package: 'player',
     plugin: 'ctrl',

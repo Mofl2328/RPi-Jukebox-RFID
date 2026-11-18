@@ -7,6 +7,7 @@ import Controls from './controls';
 import Display from './display';
 import SeekBar from './seekbar';
 import Volume from './volume';
+import Playlist from './playlist';
 
 import AppSettingsContext from '../../context/appsettings/context';
 import PlayerContext from '../../context/player/context';
@@ -84,6 +85,7 @@ const Player = () => {
           <SeekBar />
           <Controls />
           <Volume />
+          <Playlist />
         </Grid>
       </Grid>
     </Grid>

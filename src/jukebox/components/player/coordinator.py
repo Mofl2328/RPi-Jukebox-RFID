@@ -283,6 +283,10 @@ class PlayerCoordinator:
         return self._call_active('playerstatus')
 
     @plugs.tag
+    def play_track(self, pos: int):
+        return self._call_active('play_track', pos)
+
+    @plugs.tag
     def playlistinfo(self):
         return self._call_active('playlistinfo')
 

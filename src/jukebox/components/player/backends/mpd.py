@@ -661,6 +661,13 @@ class PlayerMPD:
         return self.mpd_status
 
     @plugs.tag
+    def play_track(self, pos: int):
+        """Play the track at position *pos* (0-based) of the current playlist"""
+        pos = int(pos)
+        with self.mpd_lock:
+            self.mpd_client.play(pos)
+
+    @plugs.tag
     def playlistinfo(self):
         with self.mpd_lock:
             value = self.mpd_client.playlistinfo()
