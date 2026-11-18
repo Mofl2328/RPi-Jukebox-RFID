@@ -281,6 +281,18 @@
         "description-confirm": "Are you sure you want to shut down now?",
         "description-success": "Successfully shut down",
         "failed": "Shut Down failed"
+      },
+      "reset-reader": {
+        "title": "Reset card reader",
+        "button-title": "Reset reader",
+        "button-confirm": "Reset",
+        "description-confirm": "Use this when cards aren't read any more. The reader is reset and the music keeps playing. Only if that doesn't work, the jukebox restarts (music stops, about half a minute).",
+        "resetting": "Resetting the reader …",
+        "restarting": "The reader didn't come back, restarting the jukebox …",
+        "done-no-restart": "Reader reset",
+        "done": "Reader reset, the jukebox is running again",
+        "timeout": "The jukebox didn't come back. Please check it or unplug the box for 10 seconds.",
+        "failed": "Reader reset failed"
       }
     },
     "autohotspot": {

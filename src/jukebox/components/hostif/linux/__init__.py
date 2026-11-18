@@ -2,6 +2,7 @@
 # Copyright (c) See file LICENSE in project root folder
 
 import os
+import sys
 import shutil
 import subprocess
 import logging
@@ -118,6 +119,66 @@ def restart_service():
             msg = f"Error in restarting service: {ret.stdout}"
     if not msg:
         msg = 'Restart service request dispatched successfully to host'
+    logger.info(msg)
+    return msg
+
+
+PN532_RESET_SCRIPT = '/usr/local/bin/pn532-reset.sh'
+# Loaded by the rfid reader thread (if this reader is configured); can reset the chip without a restart
+PN532_DRIVER_MODULE = 'components.rfid.hardware.pn532_i2c_py532.pn532_i2c_py532'
+
+
+def _runs_in_jukebox_service():
+    """Like jukebox_is_service, but also true when systemd's main process is the run_jukebox.sh wrapper
+
+    jukebox_is_service compares the service's MainPID with our own PID. The service starts
+    run_jukebox.sh (bash), which runs Python as a child, so MainPID is our parent and that check is always false.
+    """
+    ret = subprocess.run(['systemctl', 'show', '--user', '--property', 'MainPID', '--value', 'jukebox-daemon'],
+                         stdout=subprocess.PIPE, stderr=subprocess.STDOUT, check=False,
+                         stdin=subprocess.DEVNULL)
+    try:
+        pid = int(ret.stdout.decode().strip())
+    except ValueError:
+        return False
+    return pid != 0 and pid in (os.getpid(), os.getppid())
+
+
+@plugin.register
+def reset_rfid_reader():
+    """Hard-reset the PN532 RFID reader over its RSTPDN line (GPIO 4)
+
+    See documentation/builders/pn532-reader-reset.md.
+
+    First the reader driver resets the chip and sets it up again while the jukebox
+    keeps running (music doesn't stop). Only if that doesn't work within a few seconds, fall back to
+    reset + restart of the Jukebox service: the reset frees a stuck I2C bus, so the hung reader thread can end
+    and the restart is quick. The service resets the reader once more before it starts (ExecStartPre).
+    The restart runs in the background after 1 s, so the web UI still gets this answer.
+    The answer contains 'successfully', and 'restart' only if the service restarts.
+    """
+    driver = sys.modules.get(PN532_DRIVER_MODULE)
+    if driver is not None:
+        if driver.request_reset(timeout=6.0):
+            msg = 'RFID reader reset successfully, jukebox kept running'
+            logger.info(msg)
+            return msg
+        logger.error("RFID reader didn't come back after the reset, falling back to a service restart")
+
+    msg = ''
+    if not _runs_in_jukebox_service():
+        msg = "I am not running as a service! Doing nothing"
+    elif not os.access(PN532_RESET_SCRIPT, os.X_OK):
+        msg = f"Reader reset script {PN532_RESET_SCRIPT} not found"
+    else:
+        ret = subprocess.run(f'(sleep 1; {PN532_RESET_SCRIPT}; systemctl --user restart jukebox-daemon.service) &',
+                             shell=True, capture_output=False,
+                             stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, check=False,
+                             stdin=subprocess.DEVNULL)
+        if ret.returncode != 0:
+            msg = "Error in dispatching the reader reset"
+    if not msg:
+        msg = 'RFID reader reset and service restart dispatched successfully to host'
     logger.info(msg)
     return msg
 

@@ -278,6 +278,10 @@ const commands = {
     _package: 'host',
     plugin: 'shutdown',
   },
+  resetRfidReader: {
+    _package: 'host',
+    plugin: 'reset_rfid_reader',
+  },
   say_my_ip: {
     _package: 'host',
     plugin: 'say_my_ip',

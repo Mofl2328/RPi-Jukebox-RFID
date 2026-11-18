@@ -10,6 +10,7 @@ import {
 
 import RebootDialog from './dialogs/reboot';
 import ShutDownDialog from './dialogs/shutdown';
+import ResetReaderDialog from './dialogs/reset-reader';
 
 const SystemControls = () => {
   const { t } = useTranslation();
@@ -31,6 +32,9 @@ const SystemControls = () => {
           </Grid>
           <Grid>
             <ShutDownDialog />
+          </Grid>
+          <Grid>
+            <ResetReaderDialog />
           </Grid>
         </Grid>
       </CardContent>

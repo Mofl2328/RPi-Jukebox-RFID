@@ -281,6 +281,18 @@
         "description-confirm": "Möchtest Du jetzt wirklich herunterfahren?",
         "description-success": "Das System wurde erfolgreich heruntergefahren",
         "failed": "Herunterfahren fehlgeschlagen"
+      },
+      "reset-reader": {
+        "title": "Kartenleser zurücksetzen",
+        "button-title": "Leser zurücksetzen",
+        "button-confirm": "Zurücksetzen",
+        "description-confirm": "Hilft, wenn keine Karten mehr gelesen werden. Der Leser wird zurückgesetzt, die Musik läuft weiter. Nur wenn das nicht klappt, wird die Jukebox neu gestartet (Musik stoppt, etwa eine halbe Minute).",
+        "resetting": "Leser wird zurückgesetzt …",
+        "restarting": "Leser kam nicht zurück, Jukebox wird neu gestartet …",
+        "done-no-restart": "Leser zurückgesetzt",
+        "done": "Leser zurückgesetzt, die Jukebox läuft wieder",
+        "timeout": "Die Jukebox ist nicht zurückgekommen. Bitte prüfen oder die Box 10 Sekunden vom Strom nehmen.",
+        "failed": "Zurücksetzen des Lesers fehlgeschlagen"
       }
     },
     "autohotspot": {

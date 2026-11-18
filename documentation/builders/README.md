@@ -26,6 +26,7 @@
 * [Soundcards](./components/soundcards/)
   * [HiFiBerry Boards](./components/soundcards/hifiberry.md)
 * [RFID Readers](./../developers/rfid/README.md)
+  * [PN532 reader reset and watchdog](./pn532-reader-reset.md)
 * [Event devices (USB and other buttons)](./event-devices.md)
 
 ## Web Application
