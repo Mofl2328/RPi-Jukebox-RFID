@@ -17,6 +17,7 @@ import {
 const ActionsControls = ({
   actionData,
   cardId,
+  nickname,
 }) => {
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -32,6 +33,7 @@ const ActionsControls = ({
       cmd_alias,
       overwrite: true,
       ...(args.length && { args }),
+      ...(nickname?.trim() && { nickname: nickname.trim() }),
     };
 
     const { error } = await request('registerCard', kwargs);

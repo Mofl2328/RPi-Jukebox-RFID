@@ -13,6 +13,7 @@ const CardsEdit = () => {
   const { t } = useTranslation();
   const { cardId } = useParams();
   const [actionData, setActionData] = useState({});
+  const [nickname, setNickname] = useState('');
 
   useEffect(() => {
     const loadCardList = async () => {
@@ -22,13 +23,15 @@ const CardsEdit = () => {
         if (result && result[cardId]) {
           const {
             action: { args },
-            from_alias: command
+            from_alias: command,
+            nickname: savedNickname,
           } = result[cardId];
 
           const action = findActionByCommand(command);
           const actionData = buildActionData(action, command, args);
 
           setActionData(actionData);
+          setNickname(savedNickname || '');
         }
 
         if (error) {
@@ -46,6 +49,8 @@ const CardsEdit = () => {
       cardId={cardId}
       actionData={actionData}
       setActionData={setActionData}
+      nickname={nickname}
+      setNickname={setNickname}
     />
   );
 };

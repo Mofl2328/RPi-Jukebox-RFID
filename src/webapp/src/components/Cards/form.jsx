@@ -6,6 +6,7 @@ import {
   CardContent,
   CardHeader,
   Grid,
+  TextField,
   Typography
 } from '@mui/material';
 import BookmarkIcon from '@mui/icons-material/Bookmark';
@@ -29,6 +30,8 @@ const CardsForm = ({
   cardId,
   actionData,
   setActionData,
+  nickname = '',
+  setNickname,
 }) => {
   const { t } = useTranslation();
 
@@ -46,13 +49,26 @@ const CardsForm = ({
               }
               title={
                 cardId
-                  ? cardId
+                  ? (nickname.trim() || cardId)
                   : t('cards.form.no-card-id')
               }
+              subheader={cardId && nickname.trim() ? cardId : undefined}
             />
             <CardContent>
               {cardId &&
                 <>
+                  {setNickname &&
+                    <TextField
+                      fullWidth
+                      size="small"
+                      label={t('cards.form.nickname.label')}
+                      helperText={t('cards.form.nickname.helper')}
+                      value={nickname}
+                      onChange={(event) => setNickname(event.target.value)}
+                      slotProps={{ htmlInput: { maxLength: 64 } }}
+                      sx={{ marginBottom: '24px' }}
+                    />
+                  }
                   <Grid container sx={{ alignItems: 'center' }}>
                     <ControlsSelector
                       actionData={actionData}
@@ -63,6 +79,7 @@ const CardsForm = ({
                   <ActionsControls
                     actionData={actionData}
                     cardId={cardId}
+                    nickname={nickname}
                   />
                 </>
               }

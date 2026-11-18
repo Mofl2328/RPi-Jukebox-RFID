@@ -109,7 +109,11 @@
     },
     "form": {
       "no-card-swiped": "Please swipe a card to receive an ID which will be used to register a new action.",
-      "no-card-id": "No card ID"
+      "no-card-id": "No card ID",
+      "nickname": {
+        "label": "Nickname (optional)",
+        "helper": "Only a name to recognize the card, e.g. what's printed on the sticker. It has no function."
+      }
     },
     "list": {
       "no-cards-registered": "No cards registered!"

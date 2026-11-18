@@ -48,8 +48,8 @@ const CardsList = ({ cardsList }) => {
             </Avatar>
           </ListItemAvatar>
           <ListItemText
-            primary={cardId}
-            secondary={description}
+            primary={card.nickname || cardId}
+            secondary={card.nickname ? `${cardId} · ${description}` : description}
           />
         </ListItemButton>
       </ListItem>

@@ -109,7 +109,11 @@
     },
     "form": {
       "no-card-swiped": "Bitte scanne eine Karte um einen ID zu erhalten. Diese wird dann zur Registrierung einer neuen Aktion verwendet.",
-      "no-card-id": "Keine Karten-ID vorhanden"
+      "no-card-id": "Keine Karten-ID vorhanden",
+      "nickname": {
+        "label": "Spitzname (optional)",
+        "helper": "Nur ein Name, um die Karte wiederzuerkennen, z. B. was auf dem Sticker steht. Hat keine Funktion."
+      }
     },
     "list": {
       "no-cards-registered": "Es wurden noch keine Karten registriert!"

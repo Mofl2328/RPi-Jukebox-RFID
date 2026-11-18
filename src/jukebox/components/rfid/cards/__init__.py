@@ -64,6 +64,8 @@ def list_cards():
             alias = card_action.get('alias', None)
             if alias is not None:
                 card_list[card_id]['from_alias'] = alias
+            if card_action.get('nickname') is not None:
+                card_list[card_id]['nickname'] = str(card_action['nickname'])
     return card_list
 
 
@@ -92,8 +94,12 @@ def register_card(card_id: str, cmd_alias: str,
                   args: Optional[List] = None, kwargs: Optional[Dict] = None,
                   ignore_card_removal_action: Optional[bool] = None, ignore_same_id_delay: Optional[bool] = None,
                   overwrite: bool = False,
-                  auto_save: bool = True):
+                  auto_save: bool = True,
+                  nickname: Optional[str] = None):
     """Register a new card based on quick-selection
+
+    *nickname*: a free label for the card (e.g. what's printed on the sticker). Stored as 'nickname' in the
+    card entry and shown in the Web App. It has no function. Empty or None stores none.
 
     If you are going to call this through the RPC it will get a little verbose
 
@@ -123,6 +129,8 @@ def register_card(card_id: str, cmd_alias: str,
             cfg_cards[card_id]['ignore_same_id_delay'] = ignore_same_id_delay
         if ignore_card_removal_action is not None:
             cfg_cards[card_id]['ignore_card_removal_action'] = ignore_card_removal_action
+        if nickname is not None and str(nickname).strip():
+            cfg_cards[card_id]['nickname'] = str(nickname).strip()
         if auto_save:
             cfg_cards.save()
     publishing.get_publisher().send(f'{plugs.loaded_as(__name__)}.database.has_changed', time.ctime())
